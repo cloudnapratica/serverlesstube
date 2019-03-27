@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script>
+      var ACCESS_KEY_ID = "<ID_DA_CHAVE_DE_ACESSO>";
+      var SECRET_ACCESS_KEY = "<CHAVE_DE_ACESSO_SECRETA>";
+      var BUCKET_NAME = "<NOME_DO_SEU_BUCKET>";
+      var API_ADDRESS = "<ENDERECO_DA_SUA_API>";
+    </script>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>ServerlessTube</title>
+
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+      integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+      crossorigin="anonymous"
+    />
+
+    <style>
+      body {
+        overflow-x: hidden;
+      }
+
+      #sidebar-wrapper {
+        min-height: 100vh;
+        margin-left: -15rem;
+        -webkit-transition: margin 0.25s ease-out;
+        -moz-transition: margin 0.25s ease-out;
+        -o-transition: margin 0.25s ease-out;
+        transition: margin 0.25s ease-out;
+      }
+
+      #sidebar-wrapper .sidebar-heading {
+        padding: 0.875rem 1.25rem;
+        font-size: 1.2rem;
+        margin-left: -15px;
+      }
+
+      #sidebar-wrapper .logo img{
+        margin: 5px 5px;
+      }
+
+      #sidebar-wrapper .list-group {
+        width: 15rem;
+      }
+
+      #page-content-wrapper {
+        min-width: 100vw;
+      }
+
+      #wrapper.toggled #sidebar-wrapper {
+        margin-left: 0;
+      }
+
+      @media (min-width: 768px) {
+        #sidebar-wrapper {
+          margin-left: 0;
+        }
+
+        #page-content-wrapper {
+          min-width: 0;
+          width: 100%;
+        }
+
+        #wrapper.toggled #sidebar-wrapper {
+          margin-left: -15rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="d-flex" id="wrapper">
+      <div class="bg-light border-right" id="sidebar-wrapper">
+        <div class="row">
+          <div class="logo text-right col-sm-4">
+            <img src="images/logo.png" height="50px"/>
+          </div>
+          <div class="sidebar-heading col-sm-6" >ServerlessTube</div>
+        </div>
+        <div class="row">
+            <div class="sidebar-heading text-center col-sm-12">Vídeos Disponíveis</div>
+        </div>
+        <div id="video-list" class="list-group list-group-flush">
+        </div>
+      </div>
+      <div id="page-content-wrapper">
+        <div id="upload" class="container-fluid">
+          <h1 id="video-title" class="col-ms-4"></h1>
+          <video width="1280" height="720" id="video-player" controls></video>
+          <div id="video-controls" class="row">
+          </div>
+          </br>
+          <h2 class="mt-4">Faça o upload de um vídeo</h2>
+          <form
+            id="upload-form"
+            action="/"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <div class="form-group">
+              <label for="key">Título do Vídeo</label>
+              <input
+                type="input"
+                class="form-control"
+                id="key"
+                aria-describedby="Título do Vídeo"
+                placeholder="Título do Vídeo"
+                name="key"
+              />
+            </div>
+            <div>
+              <input type="hidden" name="acl" value="public-read" />
+              <input type="hidden" name="Content-Type" value="video/mp4" />
+              <input
+                type="hidden"
+                name="x-amz-meta-uuid"
+                value="14365123651274"
+              />
+              <input
+                type="hidden"
+                name="x-amz-server-side-encryption"
+                value="AES256"
+              />
+              <input
+                id="credential"
+                type="hidden"
+                name="X-Amz-Credential"
+                value=""
+              />
+              <input
+                type="hidden"
+                name="X-Amz-Algorithm"
+                value="AWS4-HMAC-SHA256"
+              />
+              <input id="amz-date" type="hidden" name="X-Amz-Date" value="" />
+              <input type="hidden" name="x-amz-meta-tag" value="" />
+              <input id="policy" type="hidden" name="Policy" value="" />
+              <input
+                id="signature"
+                type="hidden"
+                name="X-Amz-Signature"
+                value=""
+              />
+            </div>
+            <div class="form-group">
+              <label for="file">Arquivo</label>
+              <input type="file" class="form-control" id="file" name="file" />
+            </div>
+            <input
+              type="submit"
+              name="submit"
+              value="Upload"
+              class="btn btn-primary mb-2"
+            />
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/hmac-sha256.min.js"></script>
+    <script
+      src="http://code.jquery.com/jquery-3.3.1.min.js"
+      integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+      integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+      integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.2.2/jquery.form.min.js" integrity="sha384-FzT3vTVGXqf7wRfy8k4BiyzvbNfeYjK+frTVqZeNDFl8woCbF0CYG6g2fMEFFo/i" crossorigin="anonymous"></script>
+
+    <script>
+      var datetime = new Date();
+      var date = datetime
+        .toISOString()
+        .split("T")[0]
+        .replace(/-/g, "");
+      datetime.setMinutes(datetime.getMinutes() + 30);
+      var policy = {
+        expiration: datetime.toISOString(),
+        conditions: [
+          { bucket: BUCKET_NAME },
+          ["starts-with", "$key", ""],
+          { acl: "public-read" },
+          ["starts-with", "$Content-Type", "video/mp4"],
+          { "x-amz-meta-uuid": "14365123651274" },
+          { "x-amz-server-side-encryption": "AES256" },
+          ["starts-with", "$x-amz-meta-tag", ""],
+          {
+            "x-amz-credential":
+              ACCESS_KEY_ID + "/" + date + "/us-east-1/s3/aws4_request"
+          },
+          { "x-amz-algorithm": "AWS4-HMAC-SHA256" },
+          { "x-amz-date": date + "T000000Z" }
+        ]
+      };
+      var b64policy = btoa(JSON.stringify(policy));
+      document.getElementById("policy").value = b64policy;
+      var dateKey = CryptoJS.HmacSHA256(date, "AWS4" + SECRET_ACCESS_KEY);
+      var dateRegionKey = CryptoJS.HmacSHA256("us-east-1", dateKey);
+      var dateRegionServiceKey = CryptoJS.HmacSHA256("s3", dateRegionKey);
+      var signingKey = CryptoJS.HmacSHA256(
+        "aws4_request",
+        dateRegionServiceKey
+      );
+      var signature = CryptoJS.HmacSHA256(b64policy, signingKey);
+      document.getElementById("signature").value = signature.toString(
+        CryptoJS.enc.Hex
+      );
+      document.getElementById("credential").value =
+        ACCESS_KEY_ID + "/" + date + "/us-east-1/s3/aws4_request";
+      document.getElementById("amz-date").value = date + "T000000Z";
+      $.get(
+        API_ADDRESS,
+        function(data, status) {
+          var list = document.getElementById("video-list");
+          data.Contents.forEach(function(video) {
+            var item = document.createElement("a");
+            item.id = video.Key;
+            item.innerHTML = video.Key.split(".mp4")[0];
+            item.className = "list-group-item list-group-item-action bg-light";
+            item.href = "#";
+            item.addEventListener("click", updateVideoSource);
+            list.appendChild(item);
+          });
+        }
+      );
+      $(document).ready(function() {
+        document.getElementById("upload-form").action = "http://" + BUCKET_NAME + ".s3.amazonaws.com/";
+      });
+      function updateVideoSource(ev) {
+        document.getElementById("video-title").innerHTML = ev.target.id.split(".mp4")[0];
+        var oldSource = document.getElementById("video-source");
+        if (oldSource) {
+          oldSource.remove();
+        }
+        var source = document.createElement('source');
+        source.id = "video-source";        
+        source.setAttribute("src", "https://s3.amazonaws.com/" + BUCKET_NAME + "/" + ev.target.id);
+        document.getElementById("video-player").appendChild(source);
+        document.getElementById("video-player").load();
+
+        var controls = document.getElementById("video-controls");
+        var oldControl = document.getElementsByName("delete-video");
+        if (oldControl[0]) {
+          oldControl[0].remove();
+        }
+        var button = document.createElement("a");
+        button.name = "delete-video";
+        button.id = ev.target.id;
+        button.innerHTML = "Remover vídeo";
+        button.className = "btn btn-danger";
+        button.style = "margin-left: 14px;";
+        button.href = "#";
+        button.addEventListener("click", deleteVideo);
+        controls.appendChild(button);
+      }
+      function deleteVideo(ev) {
+        $.ajax({
+          url: API_ADDRESS + "/" + ev.target.id,
+          type: 'DELETE',
+          success: function(result) {
+            location.reload();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

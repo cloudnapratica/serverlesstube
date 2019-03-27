@@ -1,0 +1,46 @@
+service: serverlesstube
+
+frameworkVersion: ">=1.1.0"
+
+custom:
+  bucket: <NOME_DO_SEU_BUCKET>
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource:
+        - arn:aws:s3:::${self:custom.bucket}
+        - arn:aws:s3:::${self:custom.bucket}/*
+
+functions:
+  list:
+    handler: serverlesstube.list
+    events:
+      - http:
+          path: video
+          method: get
+          cors: true
+    environment:
+      BUCKET: ${self:custom.bucket}
+  delete:
+    handler: serverlesstube.delete
+    events:
+      - http:
+          path: video/{id}
+          method: delete
+          cors: true
+    environment:
+      BUCKET: ${self:custom.bucket}
+
+resources:
+  Resources:
+    s3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucket}
