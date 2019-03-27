@@ -38,7 +38,7 @@ exports.delete = async event => {
   try {
     const params = {
       Bucket: process.env.BUCKET,
-      Key: event.pathParameters.id
+      Key: event.pathParameters.id.replace(/%20/g, " ")
     };
 
     await s3.deleteObject(params).promise();
